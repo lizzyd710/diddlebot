@@ -1,0 +1,2 @@
+Woah, diddlebot is in its test configuration!
+python sux 
