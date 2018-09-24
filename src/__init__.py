@@ -2,7 +2,6 @@
 File __init__.py
 """
 
-import asyncio
 import discord
 
 # Client object used for all discord calls
@@ -13,3 +12,6 @@ CHAN_EBOARD = "eboard"
 
 # Playground channel name
 CHAN_PLAYGROUND = "playground"
+
+# Announcements channel name
+CHAN_ANNOUNCEMENTS = "announcements"

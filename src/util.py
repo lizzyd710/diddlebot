@@ -7,8 +7,14 @@ Contains helpful utility methods for the diddblebot.
 """
 
 import asyncio
+from datetime import date
+import time
 
 from src import client
+
+
+# The start date of the semester. Useful for calculating whether it's an even or odd week.
+SEMESTER_START_DATE = date(2018, 8, 27)
 
 
 def get_first_channel_by_name(name):
@@ -36,4 +42,34 @@ def send_message_async(channel, text):
     """
 
     asyncio.run_coroutine_threadsafe(client.send_message(channel, text), client.loop)
+
+
+def delta_weeks(date1, date2):
+    """
+    A convenience method that calculates how many weeks are between the two dates.
+    Assumes date2 comes after date1.
+    :param date1: The starting date
+    :param date2: The ending date
+    :return: The amount of weeks between the two dates.
+    """
+
+    return (date2 - date1).days/7
+
+
+def get_week_number():
+    """
+    Determines what week of the semester it is.
+    :return: The week number of the semester
+    """
+
+    stringtime = time.strftime("%Y,%m,%d")
+    datearray = stringtime.split(",")
+
+    year = int(datearray[0])
+    month = int(datearray[1])
+    day = int(datearray[2])
+
+    current_date = date(year, month, day)
+
+    return (delta_weeks(SEMESTER_START_DATE, current_date) // 1) + 1
 
