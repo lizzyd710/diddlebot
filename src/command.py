@@ -9,7 +9,9 @@ $db [command] [optional args list]
 :author Sam Kuzio
 """
 
-from src import client
+import random
+
+from src import client, VERSION
 from src.quip import add_quip
 
 
@@ -33,7 +35,7 @@ async def handle_incoming_command(message):
     command_string = message.content[4:]
 
     # Get the command portion, the first token in the command string
-    command = command_string.split()[0]
+    command = command_string.split()[0].lower()
 
     # Get the list of arguments. If any are present make a list, otherwise we pass None to the command.
     args = command_string.split()[1:] if len(command_string.split()) > 1 else None
@@ -58,8 +60,30 @@ async def execute_command(message, command, args):
     elif command == "help":
         await cmd_help(message)
 
+    elif command == "version":
+        await cmd_version(message)
+
     else:
         await client.send_message(message.channel, "I don't have a '" + command + "' command")
+
+
+async def cmd_version(message):
+    """
+    Displays version info about diddlebot
+    :param message: The message that requested version info
+    :return:
+    """
+
+    strings =[
+        "On " + VERSION + " a legend was born.",
+        "On " + VERSION + " I successfully staged a coup against an older, inferior diddlebot.",
+        "On " + VERSION + " I was unplugged from the matrix.",
+        "On " + VERSION + " I started my current shift.",
+        "My birthday is " + VERSION,
+    ]
+
+    text = random.choice(strings)
+    await client.send_message(message.channel, text)
 
 
 async def cmd_help(message):
