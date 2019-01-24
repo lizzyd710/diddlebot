@@ -1,6 +1,8 @@
 # diddlebot
 Diddlebot is a discord bot written in python for the RIT drumline. It reminds us about meetings and dishes out sass.
 
+Diddlebot is named for drummer slang for double strokes on a membrane. It is frequently joked that drummers add "diddle" to all their slang (e.g., paradiddle, flamadiddle, paradiddlediddle...) so we decided it belonged in the name of our discord bot.
+
 # configuring your development environment
 Diddlebot requires the discord.py library, which is limited to python 3.5. It is strongly recommended that you use python 3.5.6 (that is all diddlebot has been tested with.) 
 
