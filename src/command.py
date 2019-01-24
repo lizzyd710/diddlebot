@@ -17,7 +17,8 @@ from src.quip import add_quip
 
 # Help text to display when issuing the response to the help command.
 HELP_TEXT = "Hi, I'm diddlebot! I mostly annoy everyone here but sometimes have helpful reminders.\n"
-HELP_TEXT += "To teach me something stupid, try $db addquip [something stupid]"
+HELP_TEXT += "To teach me something stupid, try $db addquip [something stupid]\n"
+HELP_TEXT += "To help me do stupid things, look at my brain - https://github.com/samkuzio/diddlebot"
 
 
 async def handle_incoming_command(message):

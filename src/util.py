@@ -14,7 +14,7 @@ from src import client
 
 
 # The start date of the semester. Useful for calculating whether it's an even or odd week.
-SEMESTER_START_DATE = date(2018, 8, 27)
+SEMESTER_START_DATE = date(2019, 1, 14)
 
 
 def get_first_channel_by_name(name):

@@ -4,8 +4,8 @@ File __init__.py
 
 import discord
 
-# A versino string that uniquely identifies the build.
-VERSION = '2018-09-24 18:22:50 EST'
+# A version string that uniquely identifies the build.
+VERSION = '2019-01-23 23:59:13 EST'
 
 # Client object used for all discord calls
 client = discord.Client()
@@ -18,3 +18,6 @@ CHAN_PLAYGROUND = "playground"
 
 # Announcements channel name
 CHAN_ANNOUNCEMENTS = "announcements"
+
+# Attendance channel
+CHAN_ATTENDANCE = "attendance"

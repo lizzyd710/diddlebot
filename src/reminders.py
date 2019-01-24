@@ -44,6 +44,7 @@ def init_reminders():
 
     schedule.every().tuesday.at("12:00").do(reminder_practice_every_other_tuesday)
     schedule.every().thursday.at("12:00").do(reminder_practice)
+    schedule.every().friday.at("17:00").do(reminder_saturday_practice)
     print("Registered practice reminders")
 
 
@@ -108,4 +109,13 @@ def reminder_practice():
     util.send_message_async(cid, text)
 
 
+def reminder_saturday_practice():
+    """
+    Reminder for saturday practices
+    :return:
+    """
 
+    cid = util.get_first_channel_by_name(CHAN_ANNOUNCEMENTS)
+    text = "⚠️Reminder: Practice tomorrow morning at 10am! Set your alarm now!⏰"
+
+    util.send_message_async(cid, text)

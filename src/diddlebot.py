@@ -8,10 +8,11 @@ Contains all discord client event handlers.
 """
 
 
-from src import client
+from src import client, CHAN_ATTENDANCE
 import src.quip
 import src.command
 import src.reminders
+import src.attendance
 
 
 @client.event
@@ -26,9 +27,14 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    # Before handling commands, we handle channels where users solely interact with
+    # diddlebot, like #attendance. We don't need commands here bc it's assumed every
+    # message will be an attendance excuse.
+    if message.channel.name == CHAN_ATTENDANCE:
+        await src.attendance.excuse(message)
     # First and foremost handle commands. We don't want quips, etc. to be sent
     # in response to a command.
-    if message.content.lower().startswith('$db '):
+    elif message.content.lower().startswith('$db '):
         await src.command.handle_incoming_command(message)
 
     # When the diddlebot is mentioned it should chime in with sass or humor or whatever
