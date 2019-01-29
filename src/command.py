@@ -10,8 +10,9 @@ $db [command] [optional args list]
 """
 
 import random
+import datetime
 
-from src import client, VERSION
+from src import client, VERSION, util, reminders
 from src.quip import add_quip
 
 
@@ -57,6 +58,9 @@ async def execute_command(message, command, args):
 
     if command == "addquip":
         await cmd_add_quip(message, args)
+
+    elif command == "cancel":
+        await cmd_cancel(message, args)
 
     elif command == "help":
         await cmd_help(message)
@@ -114,3 +118,36 @@ async def cmd_add_quip(message, args):
     add_quip(newquip)
     response = "Nice one! I'll remember that!"
     await client.send_message(message.channel, response)
+
+
+async def cmd_cancel(message, args):
+    """
+    Cancels practice on a certain day. If practice wa already canceled on that day, it is uncancelled.
+    :param message: The message used to issue the command
+    :param args: Arguments issued. The only argument should be a date string formatted YYYY-MM-DD
+    :return: None
+    """
+
+    cancel_help_text = "usage: $db cancel YYYY-MM-DD\n\nThis cancels practice on the given date. If practice is " \
+                       "already canceled on that day, this reschedules practice for that day. Dates must be zero-" \
+                       "padded if they're single digits."
+
+    # Only eboard should be able to cancel practice
+    if not util.is_member_eboard(message.author):
+        return
+
+    # Handle the help case
+    if args is None or args[0].lower() == "help":
+        await client.send_message(message.channel, cancel_help_text)
+
+    # Otherwise attempt to cancel practice on that day.
+    try:
+        # We parse the date to ensure it's valid (and inform the user) but we really only want to pass the string.
+        datetime.datetime.strptime(args[0], reminders.DATE_FORMAT)
+        reminders.cancel_on_day(args[0])
+        await client.send_message(message.channel, "Got it! Practice will be canceled on " + args[0])
+    except ValueError:
+        await client.send_message(message.channel, "Could not parse date - make sure the day and month are 2 digits "
+                                                   "(e.g. 2019-01-01 for January First)")
+
+

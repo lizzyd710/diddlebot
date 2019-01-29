@@ -10,9 +10,20 @@ https://github.com/dbader/schedule
 
 import schedule
 import asyncio
+import datetime
 
 from src import util
 from src import CHAN_EBOARD, CHAN_PLAYGROUND, CHAN_ANNOUNCEMENTS
+
+
+# A list of days on which practice has been cancelled. Stored as strings in DATE_FORMAT
+CANCELLATION_DATES = []
+
+# The file that contains the cancellation dates.
+CANCELLATION_DATES_FILE = "cancellations.txt"
+
+# Format that we use to store cancellation dates.
+DATE_FORMAT = "%Y-%m-%d"
 
 
 async def init():
@@ -22,6 +33,9 @@ async def init():
     of the discord interactions occur on.
     :return:
     """
+
+    # Read the list of cancellations
+    read_cancellation_file()
 
     # Create the set of reminders before monitoring them.
     init_reminders()
@@ -104,7 +118,11 @@ def reminder_practice():
 
     # Practice reminders go in the announcements channel
     cid = util.get_first_channel_by_name(CHAN_ANNOUNCEMENTS)
-    text = "⚠️Reminder: Practice tonight at 9:00! Be there or be ⬛"
+
+    if not is_cancelled_today():
+        text = "⚠️Reminder: Practice tonight at 9:00! Be there or be ⬛"
+    else:
+        text = "Reminder: NO PRACTICE TODAY! Enjoy your day off!"
 
     util.send_message_async(cid, text)
 
@@ -116,6 +134,83 @@ def reminder_saturday_practice():
     """
 
     cid = util.get_first_channel_by_name(CHAN_ANNOUNCEMENTS)
-    text = "⚠️Reminder: Practice tomorrow morning at 10am! Set your alarm now!⏰"
+
+    if not is_cancelled_today():
+        text = "⚠️Reminder: Practice tomorrow morning at 10am! Set your alarm now!⏰"
+    else:
+        text = "Reminder: NO PRACTICE TOMORROW! Turn off that alarm and sleep in!"
 
     util.send_message_async(cid, text)
+
+
+def is_cancelled_today():
+    """
+    Determines if practice is cancelled today.
+    :return: True if today is in the CANCELLATION_DATES list, false if not
+    """
+
+    date = datetime.datetime.today().strftime(DATE_FORMAT)
+    return date in CANCELLATION_DATES
+
+
+def cancel_on_day(date):
+    """
+    Cancels the practice on the given date.
+    :param date: A string formatted as DATE_FORMAT
+    :return:
+    """
+
+    # can't do anything with none date.
+    if date is None:
+        print("Warning: tried to cancel practice on None date!")
+        return
+
+    if date not in CANCELLATION_DATES:
+        CANCELLATION_DATES.append(date)
+        write_cancellation_file()
+    elif date in CANCELLATION_DATES:
+        CANCELLATION_DATES.remove(date)
+        write_cancellation_file()
+
+
+def write_cancellation_file():
+    """
+    Saves the CANCELLATION_DATES to a file.
+    Each line of the file will be a different date.
+    :return:
+    """
+
+    file = open(CANCELLATION_DATES_FILE, "w")
+
+    for date in CANCELLATION_DATES:
+        file.write(date.strftime("%Y-%m-%d\n"))
+
+    file.close()
+
+
+def read_cancellation_file():
+    """
+    Reads all of the entries in the cancellation file and parses
+    them into the CANCELLATION_DATES list. Clears the list of cancellations
+    before reading.
+    :return:
+    """
+
+    try:
+        file = open(CANCELLATION_DATES_FILE, "r")
+    except FileNotFoundError:
+        file = open(CANCELLATION_DATES_FILE, "w")
+
+    lines = file.readlines()
+    file.close()
+
+    CANCELLATION_DATES.clear()
+
+    for line in lines:
+        try:
+            # Parse each date just to be sure it's valid.
+            datetime.datetime.strptime(line.strip(), "%Y-%m-%d")
+            CANCELLATION_DATES.append(line.strip())
+        except ValueError:
+            print("Failed to parse date '" + line.strip() + "' while reading cancellation file.")
+

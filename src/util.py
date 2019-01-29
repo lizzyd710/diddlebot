@@ -10,7 +10,7 @@ import asyncio
 from datetime import date
 import time
 
-from src import client
+from src import client, ROLE_EBOARD
 
 
 # The start date of the semester. Useful for calculating whether it's an even or odd week.
@@ -72,4 +72,18 @@ def get_week_number():
     current_date = date(year, month, day)
 
     return (delta_weeks(SEMESTER_START_DATE, current_date) // 1) + 1
+
+
+def is_member_eboard(member):
+    """
+    Determines if the given member is on eboard.
+    :param member: a Member object.
+    :return: True if they're on eboard, false if not.
+    """
+
+    for role in member.roles:
+        if role.name == ROLE_EBOARD:
+            return True
+
+    return False
 

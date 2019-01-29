@@ -21,3 +21,6 @@ CHAN_ANNOUNCEMENTS = "announcements"
 
 # Attendance channel
 CHAN_ATTENDANCE = "attendance"
+
+# The eboard role
+ROLE_EBOARD = "E-Board"
