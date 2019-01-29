@@ -20,7 +20,7 @@ from src import CHAN_EBOARD, CHAN_PLAYGROUND, CHAN_ANNOUNCEMENTS
 CANCELLATION_DATES = []
 
 # The file that contains the cancellation dates.
-CANCELLATION_DATES_FILE = "cancellations.txt"
+CANCELLATION_DATES_FILE = "../cancellations.txt"
 
 # Format that we use to store cancellation dates.
 DATE_FORMAT = "%Y-%m-%d"
@@ -150,6 +150,16 @@ def is_cancelled_today():
     """
 
     date = datetime.datetime.today().strftime(DATE_FORMAT)
+    return is_cancelled_on(date)
+
+
+def is_cancelled_on(date):
+    """
+    Determines if practice is cancelled on the given date.
+    :param date: the date string to check against.
+    :return: True if date is in CANCELLATION_DATES, False otherwise.
+    """
+
     return date in CANCELLATION_DATES
 
 
@@ -160,17 +170,22 @@ def cancel_on_day(date):
     :return:
     """
 
-    # can't do anything with none date.
-    if date is None:
-        print("Warning: tried to cancel practice on None date!")
-        return
-
-    if date not in CANCELLATION_DATES:
+    # Prevent adding redundant strings to the list
+    if not is_cancelled_on(date):
         CANCELLATION_DATES.append(date)
         write_cancellation_file()
-    elif date in CANCELLATION_DATES:
+
+
+def uncancel_on_dat(date):
+    """
+    Uncancels practice on the given date.
+    :param date: A string formatted as DATE_FORMAT
+    :return:
+    """
+
+    # Remove the date from the list
+    if is_cancelled_on(date):
         CANCELLATION_DATES.remove(date)
-        write_cancellation_file()
 
 
 def write_cancellation_file():
@@ -183,7 +198,7 @@ def write_cancellation_file():
     file = open(CANCELLATION_DATES_FILE, "w")
 
     for date in CANCELLATION_DATES:
-        file.write(date.strftime("%Y-%m-%d\n"))
+        file.write(date + "\n")
 
     file.close()
 
@@ -199,7 +214,7 @@ def read_cancellation_file():
     try:
         file = open(CANCELLATION_DATES_FILE, "r")
     except FileNotFoundError:
-        file = open(CANCELLATION_DATES_FILE, "w")
+        return
 
     lines = file.readlines()
     file.close()

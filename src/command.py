@@ -12,14 +12,17 @@ $db [command] [optional args list]
 import random
 import datetime
 
-from src import client, VERSION, util, reminders
+from src import client, VERSION, util, reminders, CHAN_ANNOUNCEMENTS
 from src.quip import add_quip
-
 
 # Help text to display when issuing the response to the help command.
 HELP_TEXT = "Hi, I'm diddlebot! I mostly annoy everyone here but sometimes have helpful reminders.\n"
-HELP_TEXT += "To teach me something stupid, try $db addquip [something stupid]\n"
-HELP_TEXT += "To help me do stupid things, look at my brain - https://github.com/samkuzio/diddlebot"
+HELP_TEXT += "Have a look at my brain - https://github.com/samkuzio/diddlebot\n\n"
+HELP_TEXT += "Here are some helpful commands:\n"
+HELP_TEXT += "$db addquip [text]\n"
+HELP_TEXT += "$db cancel (eboard only)\n"
+HELP_TEXT += "$db uncancel (eboard only)\n"
+HELP_TEXT += "$db cancellations"
 
 
 async def handle_incoming_command(message):
@@ -62,6 +65,12 @@ async def execute_command(message, command, args):
     elif command == "cancel":
         await cmd_cancel(message, args)
 
+    elif command == "uncancel":
+        await cmd_uncancel(message, args)
+
+    elif command == "cancellations":
+        await cmd_cancellations(message)
+
     elif command == "help":
         await cmd_help(message)
 
@@ -79,7 +88,7 @@ async def cmd_version(message):
     :return:
     """
 
-    strings =[
+    strings = [
         "On " + VERSION + " a legend was born.",
         "On " + VERSION + " I successfully staged a coup against an older, inferior diddlebot.",
         "On " + VERSION + " I was unplugged from the matrix.",
@@ -122,32 +131,101 @@ async def cmd_add_quip(message, args):
 
 async def cmd_cancel(message, args):
     """
-    Cancels practice on a certain day. If practice wa already canceled on that day, it is uncancelled.
+    Cancels practice on a certain day.
     :param message: The message used to issue the command
     :param args: Arguments issued. The only argument should be a date string formatted YYYY-MM-DD
     :return: None
     """
 
-    cancel_help_text = "usage: $db cancel YYYY-MM-DD\n\nThis cancels practice on the given date. If practice is " \
-                       "already canceled on that day, this reschedules practice for that day. Dates must be zero-" \
+    cancel_help_text = "usage: $db cancel YYYY-MM-DD\n\nThis cancels practice on the given date. Dates must be zero-" \
                        "padded if they're single digits."
 
     # Only eboard should be able to cancel practice
     if not util.is_member_eboard(message.author):
+        await client.send_message(message.channel, "You're not in eboard... trying to stage a coup?")
         return
 
     # Handle the help case
-    if args is None or args[0].lower() == "help":
+    if args is None or len(args) != 1 or args[0].lower() == "help":
         await client.send_message(message.channel, cancel_help_text)
+        return
 
     # Otherwise attempt to cancel practice on that day.
     try:
         # We parse the date to ensure it's valid (and inform the user) but we really only want to pass the string.
-        datetime.datetime.strptime(args[0], reminders.DATE_FORMAT)
-        reminders.cancel_on_day(args[0])
-        await client.send_message(message.channel, "Got it! Practice will be canceled on " + args[0])
+        dt = datetime.datetime.strptime(args[0], reminders.DATE_FORMAT)
     except ValueError:
         await client.send_message(message.channel, "Could not parse date - make sure the day and month are 2 digits "
-                                                   "(e.g. 2019-01-01 for January First)")
+                                                   "(e.g. 2019-01-02 for January 2nd)")
+        return
+
+    # Check if already cancelled.
+    if reminders.is_cancelled_on(args[0]):
+        await client.send_message(message.channel, "Practice is already cancelled on " + args[0] + ". " +
+                                  "Use $db uncancel YYYY-MM-DD if you wish to reschedule practice.")
+    else:
+        reminders.cancel_on_day(args[0])
+        await client.send_message(message.channel, "Practice has been cancelled on " + dt.strftime("%B %d, %Y") + ".")
+        await client.send_message(CHAN_ANNOUNCEMENTS, "Notice: Practice has been cancelled on " +
+                                  dt.strftime("%A %B %d, %Y"))
 
 
+async def cmd_uncancel(message, args):
+    """
+    Attempts to uncancel a practice that was cancelled on a certain date.
+    :param message: The message used to issue the command
+    :param args: Arguments issued. The argument should be a date string in format YYYY-MM-DD
+    :return:
+    """
+
+    uncancel_help_text = "usage: $db cancel YYYY-MM-DD\n\nThis uncancels practice on the given date. If practice is " \
+                         "already canceled on that day, this reschedules practice for that day. Dates must be zero-" \
+                         "padded if they're single digits."
+
+    # Only eboard should be able to cancel practice
+    if not util.is_member_eboard(message.author):
+        await client.send_message(message.channel, "You're not in eboard... trying to stage a coup?")
+        return
+
+    # Handle the help case
+    if args is None or len(args) != 1 or args[0].lower() == "help":
+        await client.send_message(message.channel, uncancel_help_text)
+        return
+
+    # Otherwise attempt to cancel practice on that day.
+    try:
+        # We parse the date to ensure it's valid (and inform the user) but we really only want to pass the string.
+        dt = datetime.datetime.strptime(args[0], reminders.DATE_FORMAT)
+    except ValueError:
+        await client.send_message(message.channel, "Could not parse date - make sure the day and month are 2 digits "
+                                                   "(e.g. 2019-01-02 for January 2nd)")
+        return
+
+    # If already cancelled, do uncancelling.
+    if reminders.is_cancelled_on(args[0]):
+        await client.send_message(message.channel, "Practice has been uncancelled on " + dt.strftime("%B %d, %Y") + ".")
+        await client.send_message(CHAN_ANNOUNCEMENTS, "Notice: Practice, which was previously cancelled on "
+                                  + dt.strftime("%A %B %d, %Y") + " has been rescheduled for the same time - "
+                                  "sorry for any inconvenience.")
+    else:
+        await client.send_message(message.channel, "Practice was not cancelled on " + args[0] +
+                                  " so it can't be uncancelled.")
+
+
+async def cmd_cancellations(message):
+    """
+    Displays all of the known cancellations
+    :param message: The message sent
+    :return:
+    """
+
+    if len(reminders.CANCELLATION_DATES) == 0:
+        await client.send_message(message.channel, "There are no current practice cancellations")
+        return
+
+    text = "Practice is cancelled on the following date(s):\n\n"
+
+    for day in reminders.CANCELLATION_DATES:
+        text += datetime.datetime.strptime(day, reminders.DATE_FORMAT).strftime("%A %B %d, %Y") + "\n"
+
+    await client.send_message(message.channel, text)

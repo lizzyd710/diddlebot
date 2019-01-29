@@ -7,6 +7,7 @@ Contains helpful utility methods for the diddblebot.
 """
 
 import asyncio
+import discord
 from datetime import date
 import time
 
@@ -80,6 +81,10 @@ def is_member_eboard(member):
     :param member: a Member object.
     :return: True if they're on eboard, false if not.
     """
+
+    if type(member) is not discord.Member:
+        print("Given object is not a server member - make sure they're sending the message from a server and not DMs.")
+        return False
 
     for role in member.roles:
         if role.name == ROLE_EBOARD:
