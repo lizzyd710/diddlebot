@@ -53,7 +53,7 @@ def init_reminders():
     # schedule.every(5).seconds.do(reminder_test)
     # print("Registered test reminder. Spam incoming!")
 
-    schedule.every().tuesday.at("12:00").do(reminder_sports_fed_meeting)
+    schedule.every().monday.at("12:00").do(reminder_sports_fed_meeting)
     print("Registered sports federation weekly reminder for every tuesday")
 
     schedule.every().tuesday.at("12:00").do(reminder_practice_every_other_tuesday)
@@ -92,7 +92,7 @@ def reminder_sports_fed_meeting():
     cid = util.get_first_channel_by_name(CHAN_EBOARD)
 
     # Reminder text
-    text = "REMINDER @eboard: The Sports Federation Meeting is scheduled for tomorrow at 11:00am."
+    text = "REMINDER: The Sports Federation Meeting is scheduled for tomorrow at 11:00am."
 
     util.send_message_async(cid, text)
 
