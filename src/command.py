@@ -204,6 +204,7 @@ async def cmd_uncancel(message, args):
 
     # If already cancelled, do uncancelling.
     if reminders.is_cancelled_on(args[0]):
+        reminders.uncancel_on_date(args[0])
         await client.send_message(message.channel, "Practice has been uncancelled on " + dt.strftime("%B %d, %Y") + ".")
         await client.send_message(util.get_first_channel_by_name(CHAN_ANNOUNCEMENTS),
                                   "Notice: Practice, which was previously cancelled on "

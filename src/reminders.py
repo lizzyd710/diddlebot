@@ -153,6 +153,16 @@ def is_cancelled_today():
     return is_cancelled_on(date)
 
 
+def is_cancelled_tomorrow():
+    """
+    Determines if practice is cancelled tomorrow.
+    :return: True if tomorrow is in the cancellation_dates list, false if not
+    """
+
+    tomorrow = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime(DATE_FORMAT)
+    return is_cancelled_on(tomorrow)
+
+
 def is_cancelled_on(date):
     """
     Determines if practice is cancelled on the given date.
@@ -176,7 +186,7 @@ def cancel_on_day(date):
         write_cancellation_file()
 
 
-def uncancel_on_dat(date):
+def uncancel_on_date(date):
     """
     Uncancels practice on the given date.
     :param date: A string formatted as DATE_FORMAT
