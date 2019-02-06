@@ -13,6 +13,7 @@ import src.quip
 import src.command
 import src.reminders
 import src.attendance
+import src.diddlemail
 
 
 @client.event
@@ -58,9 +59,6 @@ async def on_ready():
     print(client.user.id)
     print('-------------')
 
-    # Load the quips
-    src.quip.load_quips()
-
     # Begin awaiting the reminders.
     await src.reminders.init()
 
@@ -72,13 +70,16 @@ def start():
     """
 
     # load the auth token from the auth file so the bot can log in
-    with open('../auth','r') as auth_file:
-        botToken = auth_file.read().strip()
+    with open('auth','r') as auth_file:
+        bot_token = auth_file.read().strip()
+
+    # load the email credentials
+    src.diddlemail.load_creds()
+
+    # Load the quips
+    src.quip.load_quips()
+
+    print("\nLogging in...")
 
     # Start the discord client
-    client.run(botToken)
-
-
-# Diddlebot may or may not be executed directly from this script
-if __name__ == "__main__":
-    start()
+    client.run(bot_token)

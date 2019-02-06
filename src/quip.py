@@ -11,14 +11,7 @@ import random
 from src import client
 
 # The location of the quips file relative to the bot program on the production server.
-PROD_QUIPS_FILE_PATH = 'quips.txt'
-
-# The location of the quips file relative to the bot program in the development environment.
-DEV_QUIPS_FILE_PATH = '../quips.txt'
-
-# This is the quips file path that will be used at runtime. Please ensure it is set to
-# PROD_QUIPS_FILE_PATH before you push your work.
-QUIPS_FILE = DEV_QUIPS_FILE_PATH
+QUIPS_FILE_PATH = 'quips.txt'
 
 # A list that contains all of the loaded quips
 quips = []
@@ -31,9 +24,11 @@ def load_quips():
     """
 
     global quips
-    with open(QUIPS_FILE) as f:
+    with open(QUIPS_FILE_PATH) as f:
         quips = f.readlines()
     quips = [quip.strip() for quip in quips]
+
+    print("Loaded " + str(len(quips)) + " quips")
 
 
 def add_quip(quip):
@@ -45,7 +40,7 @@ def add_quip(quip):
 
     global quips
     quips.append(quip)
-    with open(QUIPS_FILE, 'w') as f:
+    with open(QUIPS_FILE_PATH, 'w') as f:
         for item in quips:
             f.write("%s\n" % item)
     print("Saved new quip: " + quip)

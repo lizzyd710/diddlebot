@@ -26,12 +26,14 @@ def load_creds():
 
     global EMAIL_PASSWORD
 
-    with open('../email', 'r') as email_file:
+    with open('email', 'r') as email_file:
         EMAIL_PASSWORD = email_file.read().strip()
 
     if EMAIL_PASSWORD is None or EMAIL_PASSWORD == "":
         EMAIL_PASSWORD = None
         print("Warning: No password was found in the email file. Email functionality will not work!")
+    else:
+        print("Loaded email configuration")
 
 
 def send_email_to_club(message, subject):
@@ -59,6 +61,3 @@ def send_email_to_club(message, subject):
         server.sendmail(EMAIL, CLUB_EMAIL, message)
     except Exception as e:
         print(e)
-
-
-load_creds()
