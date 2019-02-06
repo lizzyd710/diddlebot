@@ -65,9 +65,20 @@ async def on_ready():
     await src.reminders.init()
 
 
-# load the auth token from the auth file so the bot can log in
-with open('../auth','r') as auth_file:
-    DISCORD_BOT_TOKEN = auth_file.read().strip()
+def start():
+    """
+    Starts diddlebot!
+    :return: The auth token.
+    """
 
-# Start the discord client
-client.run(DISCORD_BOT_TOKEN)
+    # load the auth token from the auth file so the bot can log in
+    with open('../auth','r') as auth_file:
+        botToken = auth_file.read().strip()
+
+    # Start the discord client
+    client.run(botToken)
+
+
+# Diddlebot may or may not be executed directly from this script
+if __name__ == "__main__":
+    start()
