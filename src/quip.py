@@ -6,29 +6,8 @@ The quips module of the diddlebot.
 :author Sam Kuzio - sam@skuz.io
 """
 
-import random
-
 from src import client
-
-# The location of the quips file relative to the bot program on the production server.
-QUIPS_FILE_PATH = 'quips.txt'
-
-# A list that contains all of the loaded quips
-quips = []
-
-
-def load_quips():
-    """
-    Loads the quips from the the current QUIPS_FILE
-    :return: None
-    """
-
-    global quips
-    with open(QUIPS_FILE_PATH) as f:
-        quips = f.readlines()
-    quips = [quip.strip() for quip in quips]
-
-    print("Loaded " + str(len(quips)) + " quips")
+from src.db import database
 
 
 def add_quip(quip):
@@ -38,20 +17,23 @@ def add_quip(quip):
     :return: None
     """
 
-    global quips
-    quips.append(quip)
-    with open(QUIPS_FILE_PATH, 'w') as f:
-        for item in quips:
-            f.write("%s\n" % item)
-    print("Saved new quip: " + quip)
+    conn = database.get_conn()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO quips (quip) VALUES (?)", (quip,))
+    conn.commit()
 
 
 async def send_quip(channel):
     """
     Sends a random quip to the given channel.
-    :param channel:
-    :return:
+    :param channel: The channel to send a quip to.
+    :return:None
     """
 
-    msg = random.choice(quips)
+    conn = database.get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT quip FROM quips ORDER BY RANDOM() LIMIT 1")
+    rows = cursor.fetchone()
+    msg = rows[0]
+
     await client.send_message(channel, msg)

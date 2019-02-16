@@ -76,9 +76,6 @@ def start():
     # load the email credentials
     src.diddlemail.load_creds()
 
-    # Load the quips
-    src.quip.load_quips()
-
     print("\nLogging in...")
 
     # Start the discord client
