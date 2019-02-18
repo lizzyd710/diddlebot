@@ -11,7 +11,7 @@ CREATE TABLE quips (
  * https://www.sqlite.org/lang_datefunc.html
  */
 CREATE TABLE cancellations (
-  date TEXT NOT NULL
+  date DATE NOT NULL
 );
 
 /* Attendance record table that tracks individuals missing/arriving late
