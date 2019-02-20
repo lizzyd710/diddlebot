@@ -10,17 +10,10 @@ https://github.com/dbader/schedule
 
 import schedule
 import asyncio
-import datetime
 
-from src import util
+from src import util, cancellations
 from src import CHAN_EBOARD, CHAN_PLAYGROUND, CHAN_ANNOUNCEMENTS
 
-
-# A list of days on which practice has been cancelled. Stored as strings in DATE_FORMAT
-CANCELLATION_DATES = []
-
-# The file that contains the cancellation dates.
-CANCELLATION_DATES_FILE = "../cancellations.txt"
 
 # Format that we use to store cancellation dates.
 DATE_FORMAT = "%Y-%m-%d"
@@ -33,9 +26,6 @@ async def init():
     of the discord interactions occur on.
     :return:
     """
-
-    # Read the list of cancellations
-    read_cancellation_file()
 
     # Create the set of reminders before monitoring them.
     init_reminders()
@@ -119,8 +109,8 @@ def reminder_practice():
     # Practice reminders go in the announcements channel
     cid = util.get_first_channel_by_name(CHAN_ANNOUNCEMENTS)
 
-    if not is_cancelled_today():
-        text = "⚠️Reminder: Practice tonight at 9:00! Be there or be ⬛"
+    if not cancellations.is_cancelled_today():
+        text = ":warning: Reminder: Practice tonight at 9:00! Be there or be :white_large_square:"
     else:
         text = "Reminder: NO PRACTICE TODAY! Enjoy your day off!"
 
@@ -135,107 +125,10 @@ def reminder_saturday_practice():
 
     cid = util.get_first_channel_by_name(CHAN_ANNOUNCEMENTS)
 
-    if not is_cancelled_today():
-        text = "⚠️Reminder: Practice tomorrow morning at 10am! Set your alarm now!⏰"
+    if not cancellations.is_cancelled_today():
+        text = ":warning: Reminder: Practice tomorrow morning at 10am! Set your alarm now!⏰ :alarm_clock:"
     else:
-        text = "Reminder: NO PRACTICE TOMORROW! Turn off that alarm and sleep in!"
+        text = ":warning: Reminder: NO PRACTICE TOMORROW! Turn off that alarm and sleep in!"
 
     util.send_message_async(cid, text)
-
-
-def is_cancelled_today():
-    """
-    Determines if practice is cancelled today.
-    :return: True if today is in the CANCELLATION_DATES list, false if not
-    """
-
-    date = datetime.datetime.today().strftime(DATE_FORMAT)
-    return is_cancelled_on(date)
-
-
-def is_cancelled_tomorrow():
-    """
-    Determines if practice is cancelled tomorrow.
-    :return: True if tomorrow is in the cancellation_dates list, false if not
-    """
-
-    tomorrow = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime(DATE_FORMAT)
-    return is_cancelled_on(tomorrow)
-
-
-def is_cancelled_on(date):
-    """
-    Determines if practice is cancelled on the given date.
-    :param date: the date string to check against.
-    :return: True if date is in CANCELLATION_DATES, False otherwise.
-    """
-
-    return date in CANCELLATION_DATES
-
-
-def cancel_on_day(date):
-    """
-    Cancels the practice on the given date.
-    :param date: A string formatted as DATE_FORMAT
-    :return:
-    """
-
-    # Prevent adding redundant strings to the list
-    if not is_cancelled_on(date):
-        CANCELLATION_DATES.append(date)
-        write_cancellation_file()
-
-
-def uncancel_on_date(date):
-    """
-    Uncancels practice on the given date.
-    :param date: A string formatted as DATE_FORMAT
-    :return:
-    """
-
-    # Remove the date from the list
-    if is_cancelled_on(date):
-        CANCELLATION_DATES.remove(date)
-
-
-def write_cancellation_file():
-    """
-    Saves the CANCELLATION_DATES to a file.
-    Each line of the file will be a different date.
-    :return:
-    """
-
-    file = open(CANCELLATION_DATES_FILE, "w")
-
-    for date in CANCELLATION_DATES:
-        file.write(date + "\n")
-
-    file.close()
-
-
-def read_cancellation_file():
-    """
-    Reads all of the entries in the cancellation file and parses
-    them into the CANCELLATION_DATES list. Clears the list of cancellations
-    before reading.
-    :return:
-    """
-
-    try:
-        file = open(CANCELLATION_DATES_FILE, "r")
-    except FileNotFoundError:
-        return
-
-    lines = file.readlines()
-    file.close()
-
-    CANCELLATION_DATES.clear()
-
-    for line in lines:
-        try:
-            # Parse each date just to be sure it's valid.
-            datetime.datetime.strptime(line.strip(), "%Y-%m-%d")
-            CANCELLATION_DATES.append(line.strip())
-        except ValueError:
-            print("Failed to parse date '" + line.strip() + "' while reading cancellation file.")
 

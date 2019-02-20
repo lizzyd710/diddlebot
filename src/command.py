@@ -12,7 +12,7 @@ $db [command] [optional args list]
 import random
 import datetime
 
-from src import client, VERSION, util, reminders, CHAN_ANNOUNCEMENTS, cancellations
+from src import client, VERSION, reminders, cancellations
 from src.quip import add_quip
 
 # Help text to display when issuing the response to the help command.
@@ -158,13 +158,19 @@ async def cmd_cancellations(message):
     :return:
     """
 
-    if len(reminders.CANCELLATION_DATES) == 0:
+    dates = cancellations.get_cancellations()
+
+    if dates is None:
+        await client.send_message(message.channel, "Something went wrong when doing that - Sorry!")
+        return
+
+    if len(dates) == 0:
         await client.send_message(message.channel, "There are no current practice cancellations")
         return
 
     text = "Practice is cancelled on the following date(s):\n\n"
 
-    for day in reminders.CANCELLATION_DATES:
+    for day in dates:
         text += datetime.datetime.strptime(day, reminders.DATE_FORMAT).strftime("%A %B %d, %Y") + "\n"
 
     await client.send_message(message.channel, text)
