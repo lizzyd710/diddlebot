@@ -143,20 +143,20 @@ async def handle_cancel_command(message, args):
     dt = parse_date(args[0])
     if dt is None:
         await client.send_message(message.channel, "Could not parse date - make sure the day and month are 2 digits "
-                                             "(e.g. 2019-01-02 for January 2nd)")
+                                                   "(e.g. 2019-01-02 for January 2nd)")
         return
 
     # Check if already cancelled.
     if is_cancelled_on(args[0]):
         await client.send_message(message.channel, "Practice is already cancelled on " + args[0] + ". " +
-                            "Use $db uncancel YYYY-MM-DD if you wish to reschedule practice.")
+                                  "Use $db uncancel YYYY-MM-DD if you wish to reschedule practice.")
 
     # If not cancelled, we try cancelling on the date
     elif cancel_on_day(args[0]):
         await client.send_message(message.channel, "Practice has been cancelled on " + dt.strftime("%B %d, %Y") + ".")
         await client.send_message(util.get_first_channel_by_name(CHAN_ANNOUNCEMENTS),
-                            "Notice: Practice has been cancelled on " +
-                            dt.strftime("%A %B %d, %Y"))
+                                  "Notice: Practice has been cancelled on " +
+                                  dt.strftime("%A %B %d, %Y"))
 
     # And if something went wrong with that, report a failure.
     else:
