@@ -5,7 +5,7 @@ File __init__.py
 import discord
 
 # A version string that uniquely identifies the build.
-VERSION = '1/29/2019'
+VERSION = '2/19/2019'
 
 # Client object used for all discord calls
 client = discord.Client()
