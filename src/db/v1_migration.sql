@@ -1,3 +1,10 @@
+/*
+v1_migration.sql
+
+The initial database creation migration file. Sets up the quips, cancellations,
+excuse and excuse_type tables.
+ */
+
 /* Create the quips table. An ID PK will be handy for these.
  * Quips are effectively unconstrained in size.
  */
@@ -18,13 +25,27 @@ CREATE TABLE cancellations (
  * to rehearsal. Again, SQLite dates are stored as text and can be used
  * with these handy functions: https://www.sqlite.org/lang_datefunc.html
  */
-CREATE TABLE attendance (
+CREATE TABLE excuses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   type TEXT NOT NULL,
   date TEXT NOT NULL,
   name TEXT NOT NULL,
-  reason TEXT
+  reason TEXT,
+  excuse_status_type INTEGER NOT NULL,
+  FOREIGN KEY (excuse_status_type) REFERENCES excuse_status_type(id)
 );
 
+/* The possible types of statuses that can be issued for absences. For now,
+ * This migration file will add two constants: Excused and Unexcused.
+ */
+CREATE TABLE excuse_status_type (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  status_name TEXT NOT NULL
+);
+
+
+
+/* Add the default quips */
 INSERT INTO quips (quip) VALUES
 ("Keep your inner beats down!"),
 ("Your left hand is WRONG!"),
@@ -43,3 +64,8 @@ INSERT INTO quips (quip) VALUES
 ("Sticks out for Harambe"),
 ("Did Tommy oversleep again?"),
 ("python sux");
+
+/* Add default excuse status types */
+INSERT INTO excuse_status_type (status_name) VALUES
+("excused"),
+("unexcused");

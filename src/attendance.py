@@ -7,8 +7,17 @@ includes all of the functionality for attendance taking.
 """
 
 from src import client, CHAN_ATTENDANCE
+from src import diddlemail
+from src.db import  database
 import datetime
-import src.diddlemail
+import traceback
+
+
+# How we expect people to format their dates.
+USER_DATE_FORMAT = "%m/%d"
+
+# Full date format that we can use for database insertions - YYYY-MM-DD
+DB_DATE_FORMAT = "%Y-%m-%d"
 
 # Help text
 FORMAT_HELP_TEXT = "This channel is used to get an absence/late arrival to practice excused and I couldn't " \
@@ -20,10 +29,15 @@ FORMAT_HELP_TEXT = "This channel is used to get an absence/late arrival to pract
                    "absent today George Hopkins I'm going to prison\n" \
                    "Late tonight Marc Garside Van broke down"
 
+# Parsing string constants.
 ABSENT = "absent"
 LATE = "late"
 TODAY = "today"
 TONIGHT = "tonight"
+
+# Excuse status type names.
+EXCUSED = "excused"
+UNEXCUSED = "unexcused"
 
 
 async def excuse(message):
@@ -45,13 +59,71 @@ async def excuse(message):
     else:
         await client.send_message(message.channel, "Got it! " + first + " " + last + " will be excused on " + date +
                                   " with " + ("no reason given" if reason is None else "reason '" + reason + "'"))
+        send_excuse_email(first, last, absence, date, reason)
+        add_excuse_record(absence, date, first, last, reason)
 
-        subject = first + " " + last + " " + ("late arrival" if absence == LATE else "absence") + " on " + date
 
-        message = "Hello,\n\n" + first + " " + last + " will be " + absence + " on " + date + " because:\n" +\
-                  (reason if reason else "<no reason given>") + "\n\nSincerely,\nDiddlebot"
+def send_excuse_email(first, last, absence, date, reason):
+    """
+    Attempts to send the attendance excuse email.
+    :param first: The first name
+    :param last: The last name
+    :param absence: Whether they are late/absent
+    :param date: date string on which the person will be absent
+    :param reason: A reason they may have given.
+    :return: None
+    """
+    subject = first + " " + last + " " + ("late arrival" if absence == LATE else "absence") + " on " + date
 
-        src.diddlemail.send_email_to_club(message, subject)
+    message = "Hello,\n\n" + first + " " + last + " will be " + absence + " on " + date + " because:\n" + \
+              (reason if reason else "<no reason given>") + "\n\nSincerely,\nDiddlebot"
+
+    diddlemail.send_email_to_club(message, subject)
+
+
+def add_excuse_record(absence_type, date, first, last, reason, excused=True):
+    """
+    Adds a record to the database for an excuse.
+    :param absence_type: The type of excuse - late/absent
+    :param date: The date on which the excuse is for - formatted as MM/DD - year will be assumed to be the current year.
+    :param first: The first name
+    :param last: The last name
+    :param reason: The reason, or None if no reason was given.
+    :param excused: True if the absence is to be excused, false if not. By default we excuse them... for now.
+    :return: True iff the excuse record was created.
+    """
+
+    # Format some of the fields for easy db insertion later.
+    name = first + " " + last
+    date = datetime.datetime.strptime(date, USER_DATE_FORMAT)\
+        .replace(year=datetime.date.today().year).strftime(DB_DATE_FORMAT)
+    status_name = EXCUSED if excused else UNEXCUSED
+
+    # Determine the DB ID of the excuse status type to give this excuse.
+    try:
+        conn = database.get_conn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM excuse_status_type WHERE status_name=? COLLATE NOCASE", (status_name,))
+        status_id = cursor.fetchone()[0]
+    except Exception as exc:
+        print("An error occurred when logging an excuse in the database!")
+        print(exc)
+        traceback.print_exc()
+        return False
+
+    # Now try inserting the full excuse.
+    try:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO excuses (type, date, name, reason, excuse_status_type) VALUES "
+                       "(?, ?, ?, ?, ?)", (absence_type, date, name, reason, status_id,))
+        conn.commit()
+    except Exception as exc:
+        print("An error occurred creating the excuse record!")
+        print(exc)
+        traceback.print_exc()
+        return False
+
+    return True
 
 
 def parse_message(text):
@@ -78,10 +150,16 @@ def parse_message(text):
 
     # try to parse the date
     if len(parts) >= 2:
+        # If they said today/tonight, turn that into MM/DD
         if parts[1].lower() == TODAY or parts[1].lower() == TONIGHT:
-            date = datetime.date.today().strftime("%B %d")
+            date = datetime.date.today().strftime(USER_DATE_FORMAT)
+
+        # Otherwise try to parse the time they gave as a MM/DD string.
         else:
-            date = parts[1]
+            try:
+                date = datetime.datetime.strptime(parts[1], USER_DATE_FORMAT)
+            except ValueError:
+                date = None
 
     # try to parse the names
     if len(parts) >= 4:

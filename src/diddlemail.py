@@ -26,8 +26,14 @@ def load_creds():
 
     global EMAIL_PASSWORD
 
-    with open('email', 'r') as email_file:
-        EMAIL_PASSWORD = email_file.read().strip()
+    try:
+        with open('email', 'r') as email_file:
+            EMAIL_PASSWORD = email_file.read().strip()
+    except FileNotFoundError:
+        EMAIL_PASSWORD = None
+        print("No email file present - email functionality will not work. To fix this, ensure the email file exists in"
+              " the current working directory with the email account password.")
+        return
 
     if EMAIL_PASSWORD is None or EMAIL_PASSWORD == "":
         EMAIL_PASSWORD = None
