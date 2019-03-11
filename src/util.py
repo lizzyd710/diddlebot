@@ -15,7 +15,8 @@ from src import client, ROLE_EBOARD
 
 
 # The start date of the semester. Useful for calculating whether it's an even or odd week.
-SEMESTER_START_DATE = date(2019, 1, 14)
+# Note: updated this date to account for spring break, which is not counted as a week of the spring semester.
+SEMESTER_START_DATE = date(2019, 3, 18)
 
 
 def get_first_channel_by_name(name):
