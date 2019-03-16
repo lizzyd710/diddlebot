@@ -7,7 +7,6 @@ Contains important database utilities.
 """
 
 import sqlite3
-import src.db.migrator as migrator
 
 
 # Keep a single database connection. Use get_db_connection(), do not access the variable directly.
@@ -27,12 +26,3 @@ def get_conn():
         conn = sqlite3.connect(DATABASE)
 
     return conn
-
-
-def init_db():
-    """
-    Initializes the database.
-    :return: None
-    """
-
-    migrator.migrate(get_conn())

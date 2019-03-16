@@ -10,12 +10,16 @@ import asyncio
 import discord
 from datetime import date
 import time
+import requests
 
 from src import client, ROLE_EBOARD
 
 
 # The start date of the semester. Useful for calculating whether it's an even or odd week.
 SEMESTER_START_DATE = date(2019, 1, 14)
+
+# The base url of the ritdl-ws rest api.
+API_BASE_URL = "http://localhost:3000/api"
 
 
 def get_first_channel_by_name(name):
@@ -92,3 +96,14 @@ def is_member_eboard(member):
 
     return False
 
+
+def http_get(endpoint):
+    """
+    Given an ritdl-ws enpoint, makes an HTTP GET request.
+    :param endpoint: An endpoint string formatted as "/[endpoint][vars]" that will be appended to the
+                     API_BASE_ENDPOINT string.
+    :return: A Response object: http://docs.python-requests.org/en/latest/api/#requests.Response
+    """
+
+    url = API_BASE_URL + endpoint
+    return requests.get(url)

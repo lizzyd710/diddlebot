@@ -8,6 +8,7 @@ The quips module of the diddlebot.
 
 from src import client
 from src.db import database
+from src.util import http_get
 
 
 def add_quip(quip):
@@ -30,10 +31,10 @@ async def send_quip(channel):
     :return:None
     """
 
-    conn = database.get_conn()
-    cursor = conn.cursor()
-    cursor.execute("SELECT quip FROM quips ORDER BY RANDOM() LIMIT 1")
-    rows = cursor.fetchone()
-    msg = rows[0]
+    resp = http_get("/quip")
 
-    await client.send_message(channel, msg)
+    if resp.status_code == 200:
+        quip = resp.content.decode("utf-8")
+        await client.send_message(channel, quip)
+    else:
+        print("quip: Unexpected response code " + resp.status_code + " with message " + str(resp.content))

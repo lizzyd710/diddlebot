@@ -14,7 +14,6 @@ import src.command
 import src.reminders
 import src.attendance
 import src.diddlemail
-import src.db.database as database
 
 
 @client.event
@@ -69,9 +68,6 @@ def start():
     Starts diddlebot!
     :return: The auth token.
     """
-
-    # initialize the database
-    database.init_db()
 
     # load the auth token from the auth file so the bot can log in
     with open('auth','r') as auth_file:
