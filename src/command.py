@@ -124,8 +124,10 @@ async def cmd_add_quip(message, args):
     newquip = ""
     for arg in args:
         newquip += arg + " "
-    add_quip(newquip)
-    response = "Nice one! I'll remember that!"
+    if add_quip(newquip):
+        response = "Nice one! I'll remember that!"
+    else:
+        response = "Congratulations! You've found the diddlebug in diddlebot. Tell someone to check my logs."
     await client.send_message(message.channel, response)
 
 

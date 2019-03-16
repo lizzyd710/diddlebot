@@ -107,3 +107,15 @@ def http_get(endpoint):
 
     url = API_BASE_URL + endpoint
     return requests.get(url)
+
+
+def http_put(endpoint, data):
+    """
+    Makes an HTTP PUT request.
+    :param endpoint: The api endpoint.
+    :param data: A dictionary of key value pairs to put in the request.
+    :return: A response object.
+    """
+
+    url = API_BASE_URL + endpoint
+    return requests.put(url, data=data)

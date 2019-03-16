@@ -7,21 +7,22 @@ The quips module of the diddlebot.
 """
 
 from src import client
-from src.db import database
-from src.util import http_get
+from src.util import http_get, http_put
 
 
 def add_quip(quip):
     """
     Adds a given quip string to the collection of quips and adds it to the quips file.
     :param quip:  The quip string to save.
-    :return: None
+    :return: True if the quip is added, or already exists. False if an error occurs.
     """
 
-    conn = database.get_conn()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO quips (quip) VALUES (?)", (quip,))
-    conn.commit()
+    resp = http_put("/quip", {"quip": quip})
+    if resp.status_code != 200:
+        print("Unexpected error code " + str(resp.status_code) + " and response body " + resp.content.decode("utf-8"))
+        return False
+    else:
+        return True
 
 
 async def send_quip(channel):
@@ -37,4 +38,4 @@ async def send_quip(channel):
         quip = resp.content.decode("utf-8")
         await client.send_message(channel, quip)
     else:
-        print("quip: Unexpected response code " + resp.status_code + " with message " + str(resp.content))
+        print("quip: Unexpected response code " + resp.status_code + " with message " + resp.content.decode("utf-8"))
