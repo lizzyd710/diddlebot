@@ -47,12 +47,15 @@ def send_email_to_club(message, subject):
     Sends a plain text email message to the club email account.
     :param message: The body text of the message
     :param subject: The subject line of the message
-    :return:
+    :return: True iff the email was sent successfully, or if email is not configured. False if an error
+             occurs when sending an email.
     """
 
     if EMAIL_PASSWORD is None:
         print("Warning: Cannot send email - no email password is loaded!")
-        return
+
+        # This is not considered a failure, rather a misconfiguration. Notifying via logs is ok here.
+        return True
 
     # as called for by the basic smtp protocol, append the subject line before the message
     message = "Subject: " + subject + "\n\n" + message
@@ -65,5 +68,7 @@ def send_email_to_club(message, subject):
         server.ehlo()
         server.login(EMAIL, EMAIL_PASSWORD)
         server.sendmail(EMAIL, CLUB_EMAIL, message)
+        return True
     except Exception as e:
         print(e)
+        return False

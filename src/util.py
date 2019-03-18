@@ -119,3 +119,15 @@ def http_put(endpoint, data):
 
     url = API_BASE_URL + endpoint
     return requests.put(url, data=data)
+
+
+def http_post(endpoint, data):
+    """
+    Makes an HTTP POST request.
+    :param endpoint: The api endpoint
+    :param data: A dictionary that represents the body of the request.
+    :return: A response object.
+    """
+
+    url = API_BASE_URL + endpoint
+    return requests.post(url, data=data)

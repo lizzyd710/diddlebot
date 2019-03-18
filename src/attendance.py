@@ -9,6 +9,8 @@ includes all of the functionality for attendance taking.
 from src import client, CHAN_ATTENDANCE
 from src import diddlemail
 from src.db import  database
+from src.util import http_post
+
 import datetime
 import traceback
 
@@ -57,10 +59,15 @@ async def excuse(message):
         await client.send_message(message.channel, FORMAT_HELP_TEXT)
         return
     else:
-        await client.send_message(message.channel, "Got it! " + first + " " + last + " will be excused on " + date +
-                                  " with " + ("no reason given" if reason is None else "reason '" + reason + "'"))
-        send_excuse_email(first, last, absence, date, reason)
-        add_excuse_record(absence, date, first, last, reason)
+        email_sent = send_excuse_email(first, last, absence, date, reason)
+        data_posted = add_excuse_record(absence, date, first, last, reason)
+
+        if not email_sent or not data_posted:
+            await client.send_message(message.channel, "I understood your message, but something went wrong "
+                                                       "while recording it. Tell someone to check my error log!")
+        else:
+            await client.send_message(message.channel, "Got it! " + first + " " + last + " will be excused on " + date +
+                                      " with " + ("no reason given" if reason is None else "reason '" + reason + "'"))
 
 
 def send_excuse_email(first, last, absence, date, reason):
@@ -71,17 +78,17 @@ def send_excuse_email(first, last, absence, date, reason):
     :param absence: Whether they are late/absent
     :param date: date string on which the person will be absent
     :param reason: A reason they may have given.
-    :return: None
+    :return: True iff sending of the email succeeded, false otherwise.
     """
     subject = first + " " + last + " " + ("late arrival" if absence == LATE else "absence") + " on " + date
 
     message = "Hello,\n\n" + first + " " + last + " will be " + absence + " on " + date + " because:\n" + \
               (reason if reason else "<no reason given>") + "\n\nSincerely,\nDiddlebot"
 
-    diddlemail.send_email_to_club(message, subject)
+    return diddlemail.send_email_to_club(message, subject)
 
 
-def add_excuse_record(absence_type, date, first, last, reason, excused=True):
+def add_excuse_record(absence_type, date, first, last, reason):
     """
     Adds a record to the database for an excuse.
     :param absence_type: The type of excuse - late/absent
@@ -89,7 +96,6 @@ def add_excuse_record(absence_type, date, first, last, reason, excused=True):
     :param first: The first name
     :param last: The last name
     :param reason: The reason, or None if no reason was given.
-    :param excused: True if the absence is to be excused, false if not. By default we excuse them... for now.
     :return: True iff the excuse record was created.
     """
 
@@ -97,33 +103,18 @@ def add_excuse_record(absence_type, date, first, last, reason, excused=True):
     name = first + " " + last
     date = datetime.datetime.strptime(date, USER_DATE_FORMAT)\
         .replace(year=datetime.date.today().year).strftime(DB_DATE_FORMAT)
-    status_name = EXCUSED if excused else UNEXCUSED
 
-    # Determine the DB ID of the excuse status type to give this excuse.
-    try:
-        conn = database.get_conn()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM excuse_status_type WHERE status_name=? COLLATE NOCASE", (status_name,))
-        status_id = cursor.fetchone()[0]
-    except Exception as exc:
-        print("An error occurred when logging an excuse in the database!")
-        print(exc)
-        traceback.print_exc()
+    # POST it to the web service which manages the database.
+    post_data = {"absence_type": absence_type, "name": name, "date": date, "reason": reason}
+    res = http_post('/attendance/excuse', post_data)
+
+    # Handle the post response, failing if something went wrong.
+    if res.status_code == 200:
+        return True
+    else:
+        print("attendance: unexpected status code " + res.status_code + " posting /api/attendance/excuse: " +
+              res.content.decode("utf-8") + "\nData submitted = " + str(post_data))
         return False
-
-    # Now try inserting the full excuse.
-    try:
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO excuses (type, date, name, reason, excuse_status_type) VALUES "
-                       "(?, ?, ?, ?, ?)", (absence_type, date, name, reason, status_id,))
-        conn.commit()
-    except Exception as exc:
-        print("An error occurred creating the excuse record!")
-        print(exc)
-        traceback.print_exc()
-        return False
-
-    return True
 
 
 def parse_message(text):
