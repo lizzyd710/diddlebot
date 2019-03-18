@@ -22,4 +22,10 @@ Much like the bot's auth token, the password to the diddlebot gmail is kept a se
 
 Presently, the email address is hardcorded as diddlebot9000 (at) gmail.com. You will need to change this constant to another email address you wish to use, for which the password is stored in the `email` file.
 
-If you intend on setting up your own gmail address for test usage, make sure you change the security settings for that Google account to allow less secure 3rd party apps - this allows automated log-ins that don't require any kind of multi-factor authentication. 
+If you intend on setting up your own gmail address for test usage, make sure you change the security settings for that Google account to allow less secure 3rd party apps - this allows automated log-ins that don't require any kind of multi-factor authentication.
+
+### Dependencies
+When configuring your development environment, the following dependencies are needed and can be installed with pip:
+- [discord.py](https://github.com/Rapptz/discord.py) - `pip install discord.py`
+- [schedule](https://github.com/dbader/schedule) - `pip install schedule`
+- [requests](https://github.com/kennethreitz/requests) - `pip install requests`
