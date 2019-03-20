@@ -7,8 +7,9 @@ Contains methods for handling practice cancellations.
 """
 
 import datetime
+import json
+
 from src import client, CHAN_ANNOUNCEMENTS, util
-from src.db import database
 
 # Help text for the cancellation commands.
 CANCEL_HELP_TEXT = "usage: $db cancel YYYY-MM-DD\n\nThis cancels practice on the given date. Dates must be zero-" \
@@ -42,7 +43,7 @@ def get_cancellations():
     res = util.http_get('/cancellations')
 
     if res.status_code == 200:
-        return res.content.decode("utf-8")
+        return json.loads(res.content.decode("utf-8"))
     else:
         print("Something went wrong when getting /api/cancellations: " +
               str(res.status_code) + "\n" + res.content.decode("utf-8"))
@@ -55,15 +56,13 @@ def cancel_on_day(date):
     :param date: A string in the format DATE_FORMAT.
     :return: True iff practice has been registered as cancelled.
     """
-    try:
-        conn = database.get_conn()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO cancellations (date) VALUES (?)", (date,))
-        conn.commit()
+
+    res = util.http_post("/cancellations/cancel/" + date, {})
+    if res.status_code == 200:
         return True
-    except Exception as exc:
-        print("Failed to cancel practice on date " + date)
-        print(exc)
+    else:
+        print("Something went wrong when trying to cancel practice on '" + date + "' " +
+              str(res.status_code) + ":\n" + res.content.decode("utf-8"))
         return False
 
 
@@ -73,15 +72,13 @@ def uncancel_on_date(date):
     :param date: The date to uncancel it. It is assumed this date is in DATE_FORMAT.
     :return: True iff the update operation was successful, false if not.
     """
-    try:
-        conn = database.get_conn()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM cancellations WHERE date=?", (date,))
-        conn.commit()
+
+    res = util.http_post("/cancellations/uncancel/" + date, {})
+    if res.status_code == 200:
         return True
-    except Exception as exc:
-        print("Failed to uncancel practice on date " + date)
-        print(exc)
+    else:
+        print("Something went wrong when trying to uncancel practice on '" + date + "' " +
+              str(res.status_code) + ":\n" + res.content.decode("utf-8"))
         return False
 
 
@@ -91,12 +88,16 @@ def is_cancelled_on(date):
     :param date: A String in the format YYYY-MM-DD.
     :return: True if practice is cancelled on the given date, False if not.
     """
-    conn = database.get_conn()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM cancellations WHERE date=?", (date,))
-    rows = len(cursor.fetchall())
 
-    return rows != 0
+    res = util.http_get("/cancellations/is/cancelled/" + date)
+
+    if res.status_code == 200:
+        # The response will just be true or false.
+        return json.loads(res.content.decode("utf-8"))
+    else:
+        print("Something went wrong when trying to determine if practice is cancelled " +
+              "on " + date + ":\n" + res.content.decode("utf-8"))
+        return None
 
 
 def is_cancelled_today():
