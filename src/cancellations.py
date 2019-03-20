@@ -39,15 +39,13 @@ def get_cancellations():
     :return: A list of all the dates on which practice is cancelled. Dates in this list are Strings.
     """
 
-    try:
-        conn = database.get_conn()
-        cursor = conn.cursor()
-        cursor.execute("SELECT date FROM cancellations")
-        results = cursor.fetchall()
-        return [row[0] for row in results]
-    except Exception as exc:
-        print("An error occurred when fetching a list of cancellations!")
-        print(exc)
+    res = util.http_get('/cancellations')
+
+    if res.status_code == 200:
+        return res.content.decode("utf-8")
+    else:
+        print("Something went wrong when getting /api/cancellations: " +
+              str(res.status_code) + "\n" + res.content.decode("utf-8"))
         return None
 
 
