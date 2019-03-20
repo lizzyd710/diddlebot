@@ -8,11 +8,9 @@ includes all of the functionality for attendance taking.
 
 from src import client, CHAN_ATTENDANCE
 from src import diddlemail
-from src.db import  database
 from src.util import http_post
 
 import datetime
-import traceback
 
 
 # How we expect people to format their dates.
