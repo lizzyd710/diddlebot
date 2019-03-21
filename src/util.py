@@ -16,8 +16,11 @@ from src import client, ROLE_EBOARD
 
 
 # The start date of the semester. Useful for calculating whether it's an even or odd week.
-# Note: updated this date to account for spring break, which is not counted as a week of the spring semester.
-SEMESTER_START_DATE = date(2019, 3, 18)
+# Note: While the university does not count spring break as an even/odd week, the office that
+# schedules our practices in the SAU ignores spring break, so the pattern of when we have the
+# room remains unchanged throughout the spring semester, and spring break does not need to be
+# accounted for.
+SEMESTER_START_DATE = date(2019, 1, 14)
 
 # The base url of the ritdl-ws rest api.
 API_BASE_URL = "http://localhost:3000/api"
