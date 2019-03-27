@@ -146,7 +146,9 @@ def parse_message(text):
         # Otherwise try to parse the time they gave as a MM/DD string.
         else:
             try:
-                date = datetime.datetime.strptime(parts[1], USER_DATE_FORMAT)
+                # We parse the time then format it back to a string so that we can both verify the date is valid,
+                # and also still return our date as just a string.
+                date = datetime.datetime.strptime(parts[1], USER_DATE_FORMAT).strftime(USER_DATE_FORMAT)
             except ValueError:
                 date = None
 
