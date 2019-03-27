@@ -8,7 +8,7 @@ Contains all discord client event handlers.
 """
 
 
-from src import client, CHAN_ATTENDANCE
+from src import client, CHAN_ATTENDANCE, CHAN_DB_TEST
 import src.quip
 import src.command
 import src.reminders
@@ -31,7 +31,7 @@ async def on_message(message):
     # Before handling commands, we handle channels where users solely interact with
     # diddlebot, like #attendance. We don't need commands here bc it's assumed every
     # message will be an attendance excuse.
-    if message.channel.name == CHAN_ATTENDANCE:
+    if message.channel.name == CHAN_ATTENDANCE or message.channel.name == CHAN_DB_TEST:
         await src.attendance.excuse(message)
     # First and foremost handle commands. We don't want quips, etc. to be sent
     # in response to a command.
