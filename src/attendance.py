@@ -6,7 +6,7 @@ includes all of the functionality for attendance taking.
 :author Sam Kuzio
 """
 
-from src import client, CHAN_ATTENDANCE
+from src import client, CHAN_ATTENDANCE, CHAN_DB_TEST
 from src import diddlemail
 from src.util import http_post
 
@@ -46,7 +46,7 @@ async def excuse(message):
     :param message: The message to handle.
     :return:
     """
-    if message.channel.name != CHAN_ATTENDANCE:
+    if not (message.channel.name == CHAN_ATTENDANCE or message.channel.name == CHAN_DB_TEST):
         print("Warning: trying to handle attendance message in non #attendance channel!")
         return
 

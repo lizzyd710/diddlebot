@@ -22,5 +22,8 @@ CHAN_ANNOUNCEMENTS = "announcements"
 # Attendance channel
 CHAN_ATTENDANCE = "attendance"
 
+# Diddlebot test channel
+CHAN_DB_TEST = "db-test"
+
 # The eboard role
 ROLE_EBOARD = "E-Board"
