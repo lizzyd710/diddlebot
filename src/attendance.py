@@ -46,26 +46,51 @@ async def excuse(message):
     :param message: The message to handle.
     :return:
     """
-    if not (message.channel.name == CHAN_ATTENDANCE or message.channel.name == CHAN_DB_TEST):
-        print("Warning: trying to handle attendance message in non #attendance channel!")
-        return
 
+    # Parse the message data and metadata
+    in_test_channel = message.channel.name == CHAN_DB_TEST
     (absence, date, first, last, reason) = parse_message(message.content)
 
+    # Validate the message contents.
     valid = absence is not None and date is not None and first is not None and last is not None
-    if not valid:
-        await client.send_message(message.channel, FORMAT_HELP_TEXT)
-        return
-    else:
-        email_sent = send_excuse_email(first, last, absence, date, reason)
-        data_posted = add_excuse_record(absence, date, first, last, reason)
 
-        if not email_sent or not data_posted:
-            await client.send_message(message.channel, "I understood your message, but something went wrong "
-                                                       "while recording it. Tell someone to check my error log!")
+    if in_test_channel:
+        # When we're in the test channel we only want to handle messages that begin with absent/late
+        if absence is not None and valid:
+            await handle_valid_message(absence, date, first, last, reason, message.channel)
+        elif absence is not None and not valid:
+            await client.send_message(message.channel, FORMAT_HELP_TEXT)
+
+    # If we're in the attendance channel, we should handle the message normally without any special steps.
+    else:
+        if not valid:
+            await client.send_message(message.channel, FORMAT_HELP_TEXT)
+            return
         else:
-            await client.send_message(message.channel, "Got it! " + first + " " + last + " will be excused on " + date +
-                                      " with " + ("no reason given" if reason is None else "reason '" + reason + "'"))
+            await handle_valid_message(absence, date, first, last, reason, message.channel)
+
+
+async def handle_valid_message(absence, date, first, last, reason, channel):
+    """
+    Given the parts of a valid message, attempts to take the correct actions to record the absence/tardy
+    :param absence: Absent/Late string
+    :param date: The date of the absence
+    :param first: First name
+    :param last: Last name
+    :param reason: Reason, or none
+    :param channel: the channel the attendance message was received in.
+    :return: None
+    """
+
+    email_sent = send_excuse_email(first, last, absence, date, reason)
+    data_posted = add_excuse_record(absence, date, first, last, reason)
+
+    if not email_sent or not data_posted:
+        await client.send_message(channel, "I understood your message, but something went wrong "
+                                             "while recording it. Tell someone to check my error log!")
+    else:
+        await client.send_message(channel, "Got it! " + first + " " + last + " will be excused on " + date +
+                            " with " + ("no reason given" if reason is None else "reason '" + reason + "'"))
 
 
 def send_excuse_email(first, last, absence, date, reason):

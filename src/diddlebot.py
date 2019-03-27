@@ -33,18 +33,21 @@ async def on_message(message):
     # message will be an attendance excuse.
     if message.channel.name == CHAN_ATTENDANCE or message.channel.name == CHAN_DB_TEST:
         await src.attendance.excuse(message)
-    # First and foremost handle commands. We don't want quips, etc. to be sent
-    # in response to a command.
-    elif message.content.lower().startswith('$db '):
-        await src.command.handle_incoming_command(message)
 
-    # When the diddlebot is mentioned it should chime in with sass or humor or whatever
-    elif "diddlebot" in message.content.lower():
-        await src.quip.send_quip(message.channel)
+    # Now handle general messages that may occur in any channel that are not specific-use channels.
+    if message.channel.name != CHAN_ATTENDANCE:
+        # Now handle commands. We don't want quips, etc. to be sent
+        # in response to a command.
+        if message.content.lower().startswith('$db '):
+            await src.command.handle_incoming_command(message)
 
-    # Press f to pay respects
-    elif message.content.lower() == 'f':
-        await client.send_message(message.channel, 'f')
+        # When the diddlebot is mentioned it should chime in with sass or humor or whatever
+        elif "diddlebot" in message.content.lower():
+            await src.quip.send_quip(message.channel)
+
+        # Press f to pay respects
+        elif message.content.lower() == 'f':
+            await client.send_message(message.channel, 'f')
 
 
 @client.event
