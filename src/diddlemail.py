@@ -12,10 +12,10 @@ import smtplib, ssl, os.path
 
 CRED_FILE = "email"
 PORT = 587
-EMAIL = "diddlebot9000@gmail.com"
+EMAIL = None
 EMAIL_PASSWORD = None
-SMTP_SERVER = "smtp.gmail.com"
-CLUB_EMAIL = "drumline@rit.edu"
+SMTP_SERVER = None
+CLUB_EMAIL = None
 
 
 def load_creds():
@@ -23,12 +23,19 @@ def load_creds():
     Attempts to load email password.
     :return:
     """
-
+    global EMAIL
     global EMAIL_PASSWORD
+    global SMTP_SERVER
+    global CLUB_EMAIL
 
+    # TODO add something to log an error if there is less than four lines in the email_file
+    # TODO find a way to validate email/smtp server too
     try:
         with open('email', 'r') as email_file:
-            EMAIL_PASSWORD = email_file.read().strip()
+            EMAIL = email_file.readline().strip()
+            EMAIL_PASSWORD = email_file.readline().strip()
+            SMTP_SERVER = email_file.readline().strip()
+            CLUB_EMAIL = email_file.readline().strip()
     except FileNotFoundError:
         EMAIL_PASSWORD = None
         print("No email file present - email functionality will not work. To fix this, ensure the email file exists in"
