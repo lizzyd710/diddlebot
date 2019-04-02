@@ -37,17 +37,28 @@ def load_creds():
             SMTP_SERVER = email_file.readline().strip()
             CLUB_EMAIL = email_file.readline().strip()
     except FileNotFoundError:
+        EMAIL = None
         EMAIL_PASSWORD = None
+        SMTP_SERVER = None
+        CLUB_EMAIL = None
         print("No email file present - email functionality will not work. To fix this, ensure the email file exists in"
               " the current working directory with the email account password.")
         return
 
-    if EMAIL_PASSWORD is None or EMAIL_PASSWORD == "":
+    if EMAIL is None or EMAIL == "":
+        EMAIL = None
+        print("Warning: No diddlebot email was found in the email file. Email functionality will not work!")
+    elif EMAIL_PASSWORD is None or EMAIL_PASSWORD == "":
         EMAIL_PASSWORD = None
         print("Warning: No password was found in the email file. Email functionality will not work!")
+    elif SMTP_SERVER is None or SMTP_SERVER == "":
+        SMTP_SERVER = None
+        print("Warning: No SMTP server was found in the email file. Email functionality will not work!")
+    elif CLUB_EMAIL is None or CLUB_EMAIL == "":
+        CLUB_EMAIL = None
+        print("Warning: No club email was found in the email file. Email functionality will not work!")
     else:
         print("Loaded email configuration")
-
 
 def send_email_to_club(message, subject):
     """
